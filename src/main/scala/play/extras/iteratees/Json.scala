@@ -4,6 +4,7 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.iteratee.Execution.Implicits.trampoline
 import play.api.libs.json._
+import play.api.libs.streams.Streams
 import play.api.mvc.{RequestHeader, BodyParser}
 import scala.concurrent.{Future, ExecutionContext}
 
@@ -97,7 +98,7 @@ object JsonBodyParser {
    */
   def parser[A](handler: Iteratee[CharString, A] = jsonValue) = new BodyParser[A] {
     def apply(rh: RequestHeader) = {
-      Encoding.decode() ><> Combinators.errorReporter &>> handler.map(result => Right(result))
+      Streams.iterateeToAccumulator(Encoding.decode() ><> Combinators.errorReporter &>> handler.map(result => Right(result)))
     }
   }
 }

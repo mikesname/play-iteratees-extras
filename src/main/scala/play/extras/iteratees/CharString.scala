@@ -216,7 +216,7 @@ private class JoinedCharString(val charStrings: List[ArrayCharString]) extends C
   }
 
   def charAt(i: Int) = {
-    charStrings.foldRight((i, '\0')) {
+    charStrings.foldRight((i, '\u0000')) {
       case (_, result @ (index, c)) if index < 0 => result
       case (cs, (index, _)) if index < cs.length => (-1, cs.charAt(index))
       case (cs, (index, c)) => (index - cs.length, c)

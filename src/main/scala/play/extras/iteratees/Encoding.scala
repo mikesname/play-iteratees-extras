@@ -1,6 +1,7 @@
 package play.extras.iteratees
 
 import java.nio.charset.{Charset, CharsetDecoder}
+import akka.util.ByteString
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input.{El, Empty, EOF}
 import java.nio.{ByteBuffer, CharBuffer}
@@ -17,16 +18,16 @@ object Encoding {
    *
    * @param decoder The decoder to use.  Defaults to a UTF-8 decoder
    */
-  def decode(decoder: CharsetDecoder = Charset.forName("UTF-8").newDecoder()): Enumeratee[Array[Byte], CharString] = new Enumeratee[Array[Byte],CharString] {
+  def decode(decoder: CharsetDecoder = Charset.forName("UTF-8").newDecoder()): Enumeratee[ByteString, CharString] = new Enumeratee[ByteString,CharString] {
     /**
      * We carry partialChar as state from the stream
      */
-    def step[A](inner: Iteratee[CharString, A], partialChar: Option[Array[Byte]] = None)(in: Input[Array[Byte]]): Iteratee[Array[Byte], Iteratee[CharString, A]] = {
+    def step[A](inner: Iteratee[CharString, A], partialChar: Option[Array[Byte]] = None)(in: Input[ByteString]): Iteratee[ByteString, Iteratee[CharString, A]] = {
       in match {
         // We've reached EOF. If we're in the middle of reading a multibyte character, then this is an error,
         // otherwise we just pass it down the chain
-        case EOF => partialChar.map(_ => Error[Array[Byte]]("EOF encountered mid character", EOF))
-          .getOrElse(Done[Array[Byte],Iteratee[CharString,A]](inner, EOF))
+        case EOF => partialChar.map(_ => Error[ByteString]("EOF encountered mid character", EOF))
+          .getOrElse(Done[ByteString,Iteratee[CharString,A]](inner, EOF))
 
         case Empty => Cont(step(inner, partialChar))
 
@@ -45,10 +46,10 @@ object Encoding {
           val byteBuffer = partialChar.map({ leftOver =>
             val buffer = ByteBuffer.allocate(leftOver.length + data.length)
             buffer.mark()
-            buffer.put(leftOver).put(data)
+            buffer.put(leftOver).put(data.toArray)
             buffer.reset()
             buffer
-          }).getOrElse(ByteBuffer.wrap(data))
+          }).getOrElse(ByteBuffer.wrap(data.toArray))
 
           // Decode it
           decoder.decode(byteBuffer, charBuffer, false)

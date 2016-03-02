@@ -7,7 +7,7 @@ javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-e
 scalacOptions += "-deprecation"
 
 libraryDependencies ++= Seq(
-  "com.typesafe.play"         %% "play"               % "2.4.1"     % "provided",
+  "com.typesafe.play"         %% "play"               % "2.5.0-RC2"     % "provided",
   "org.specs2"                %% "specs2-core"        % "3.3.1"     % "test"
 )
 
